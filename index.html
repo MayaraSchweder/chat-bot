@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chatbot</title>
+  
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap"> <!-- Fonte Poppins -->
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #f7f7f7;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .chat-container {
+      width: 100%;
+      max-width: 450px;
+      background: #fff;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      animation: fadeIn 0.6s ease-out;
+    }
+
+    .chat-header {
+      background: linear-gradient(45deg, #6a1b9a, #9c27b0);
+      padding: 20px;
+      color: #fff;
+      text-align: center;
+      font-size: 1.2rem;
+      font-weight: 600;
+      border-bottom: 2px solid #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .chat-header .material-icons-outlined {
+      font-size: 32px;
+    }
+
+    .chat-box {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      height: 350px;
+      border-bottom: 2px solid #f0f0f0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .message {
+      margin: 10px 0;
+      padding: 12px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      max-width: 75%;
+      position: relative;
+      word-wrap: break-word;
+      box-sizing: border-box;
+    }
+
+    .user {
+      background-color: #4caf50;
+      color: white;
+      align-self: flex-end;
+      border-radius: 20px 20px 0 20px;
+      max-width: 80%;
+    }
+
+    .bot {
+      background-color: #9c27b0;
+      color: white;
+      align-self: flex-start;
+      border-radius: 20px 20px 20px 0;
+      max-width: 80%;
+    }
+
+    .input-container {
+      display: flex;
+      padding: 15px;
+      background: #fff;
+      border-top: 2px solid #f0f0f0;
+    }
+
+    .input-container input {
+      flex: 1;
+      padding: 12px;
+      border: 2px solid #ddd;
+      border-radius: 25px;
+      font-size: 14px;
+      outline: none;
+      transition: border 0.3s ease;
+    }
+
+    .input-container input:focus {
+      border-color: #9c27b0;
+    }
+
+    .input-container button {
+      background-color: #9c27b0;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 25px;
+      border: none;
+      margin-left: 10px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .input-container button:hover {
+      background-color: #6a1b9a;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    .chat-box {
+      animation: scrollChat 0.3s ease-out;
+    }
+
+    @keyframes scrollChat {
+      0% {
+        scroll-behavior: smooth;
+      }
+    }
+
+    /* Estilo para lista de sugestões */
+    .suggestions ul {
+      list-style-type: none;
+      padding-left: 0;
+    }
+
+    .suggestions li {
+      background-color: #f1f1f1;
+      color: #333;
+      padding: 10px;
+      margin: 5px 0;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .suggestions li:hover {
+      background-color: #e1e1e1;
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-container">
+    <div class="chat-header">
+      <span class="material-icons-outlined">smart_toy</span>
+      Chatbot
+    </div>
+    <div class="chat-box" id="chat-box"></div>
+    <div class="input-container">
+      <input type="text" id="user-input" placeholder="Digite sua pergunta...">
+      <button onclick="sendMessage()">Enviar</button>
+    </div>
+  </div>
+
+  <script>
+    // Definindo respostas do chatbot
+    const responses = {
+      "Como escolher o melhor teclado ou mouse para jogos?": "Considere a ergonomia, DPI ajustável, iluminação RGB e durabilidade. Marcas como Razer, Logitech e Corsair são muito recomendadas.",
+      "Como melhorar minhas habilidades em jogos de FPS?": "Pratique regularmente, ajuste a sensibilidade do mouse/controlador, use fones de ouvido e estude as mecânicas do jogo.",
+      "O que é noob?": "Noob é um termo usado para descrever um jogador iniciante ou alguém que comete erros simples no jogo.",
+      "O que é um streamer?": "Um streamer é alguém que transmite ao vivo enquanto joga ou interage com o público em plataformas como Twitch, YouTube ou Facebook.",
+      "O que é MMORPG?": "MMORPG significa 'Massively Multiplayer Online Role-Playing Game'. São jogos de role-playing em que você interage com milhares de jogadores no mundo virtual.",
+      "O que é o metaverso?": "O metaverso é um universo virtual onde as pessoas podem interagir, trabalhar, jogar e socializar usando avatares digitais.",
+      "O que são jogos digitais?": "Jogos digitais são aqueles em que você utiliza equipamentos eletrônicos para interagir com o que acontece na tela da TV ou do computador. Esses jogos são os famosos videogames e possuem uma variedade de gêneros, como corrida, luta, RPG, aventura, plataforma, terror, etc.",
+      "O que são easter eggs em jogos?": "Easter eggs são segredos ou referências escondidas nos jogos, geralmente colocados pelos desenvolvedores como uma surpresa para os jogadores.",
+      "O que são jogos casuais?": "Os jogos casuais são projetados para todos. Eles têm regras simples, sessões curtas e são fáceis de aprender, sendo acessíveis ao grande público.",
+      "O que são jogos de corrida?": "Jogos de corrida permitem controlar veículos em corridas ou combates, variando entre simuladores e jogos arcade.",
+      "O que são jogos de RPG digital?": "RPG significa 'Jogo de Interpretação de Papéis'. No RPG eletrônico, o jogador controla as ações de um ou mais personagens imersos num mundo bem definido, incorporando elementos dos RPGs tradicionais.",
+      "O que são jogos sandbox?": "Jogos sandbox oferecem aos jogadores a liberdade de explorar e criar sem limites rígidos. Exemplos incluem Minecraft, Terraria e The Sims.",
+      "O que significa GG?": "GG é uma sigla para 'Good Game', usada para parabenizar o adversário ou os colegas de equipe ao final de uma partida.",
+      "Por que Fortnite é tão popular?": "Fortnite combina jogabilidade de battle royale, elementos criativos e eventos ao vivo exclusivos, como shows de música e colaborações com marcas famosas.",
+      "Qual a diferença entre realidade virtual e realidade aumentada?": "Realidade virtual (VR) cria um ambiente totalmente imersivo, enquanto realidade aumentada (AR) adiciona elementos digitais ao mundo real.",
+      "Qual a diferença entre um jogo indie e um jogo AAA?": "Jogos indie são desenvolvidos por pequenos estúdios ou até indivíduos, enquanto jogos AAA são produzidos por grandes empresas com orçamentos elevados.",
+      "Qual é o console de videogame mais vendido de todos os tempos?": "O PlayStation 2 é o console mais vendido da história, com mais de 155 milhões de unidades.",
+      "Qual é o jogo mais popular de todos os tempos?": "Minecraft é o jogo mais vendido de todos os tempos, com mais de 238 milhões de cópias.",
+      "Qual o jogo mais difícil de todos os tempos?": "Dark Souls, Bloodborne e Cuphead são frequentemente considerados alguns dos jogos mais desafiadores.",
+      "Qual foi o primeiro videogame criado?": "O primeiro videogame reconhecido foi 'Pong', lançado em 1972, mas 'Tennis for Two' (1958) e 'Spacewar!' (1962) são considerados precursores.",
+      "Quais jogos casuais online são bons para jogar com amigos?": "Among Us, Fall Guys e Rocket League são ótimos para jogar com amigos. Stardew Valley e Animal Crossing: New Horizons também oferecem modos multiplayer relaxantes.",
+      "Quais jogos ganharam prêmios como Game of the Year?": "Jogos como The Last of Us, God of War e Elden Ring receberam o prêmio de Game of the Year em diferentes anos.",
+      "Quais jogos são bons para crianças?": "Jogos como Minecraft, Super Mario Odyssey e Animal Crossing: New Horizons são ótimos para crianças, pois são educativos e divertidos.",
+      "Quais jogos são bons para aprender algo novo?": "Jogos como Minecraft, Civilization VI e The Witness podem ensinar criatividade, estratégia, história e resolução de problemas.",
+      "Quais jogos são os melhores FPS para jogar online com amigos?": "Counter-Strike: Global Offensive, Call of Duty: Modern Warfare, Rainbow Six Siege, Overwatch e Valorant são ótimas opções.",
+      "Quais são os melhores jogos cooperativos?": "Overcooked, It Takes Two, Portal 2 e A Way Out são ótimos exemplos de jogos cooperativos para jogar com amigos.",
+      "Quais são os melhores jogos de ação online que posso jogar agora?": "Alguns dos melhores jogos de ação online incluem Apex Legends, Call of Duty: Warzone, Fortnite e Valorant.",
+      "Qual a melhor plataforma para jogos: PC ou console?": "Depende das suas preferências. PCs oferecem flexibilidade e personalização, enquanto consoles como PlayStation e Xbox são mais acessíveis e fáceis de usar.",
+      "Qual jogo de corrida online oferece a melhor experiência multiplayer?": "Forza Horizon 5 e Gran Turismo 7 são altamente recomendados para corridas multiplayer.",
+      "Quais são os tipos de jogos online?": "Os jogos online podem ser classificados em vários tipos, como jogos de ação, estratégia, RPG, esportes, jogos de simulação, entre outros. Eles podem ser jogados de forma competitiva ou cooperativa.",
+      "Quais são os benefícios de jogar videogames?": "Videogames podem melhorar a coordenação motora, raciocínio lógico, trabalho em equipe e até mesmo habilidades de tomada de decisão, dependendo do jogo."
+    };
+
+    // Função para exibir a mensagem inicial
+    function showInitialMessage() {
+      const chatBox = document.getElementById("chat-box");
+      const initialMessage = `<div class="message bot">Olá, como posso ajudá-lo? A seguir haverá uma lista de sugestões de perguntas a se fazer, caso nenhuma delas te interesse recarregue a página para obter novas perguntas!</div>`;
+      chatBox.innerHTML += initialMessage;
+    }
+
+    // Função para exibir sugestões aleatórias
+    function showRandomSuggestions() {
+      const questions = Object.keys(responses);
+      const suggestions = [];
+
+      // Selecionar 5 perguntas aleatórias
+      for (let i = 0; i < 5; i++) {
+        const randomIndex = Math.floor(Math.random() * questions.length);
+        suggestions.push(questions[randomIndex]);
+      }
+
+      const chatBox = document.getElementById("chat-box");
+      const suggestionsHTML = `
+        <div class="message bot suggestions">
+          <ul>
+            ${suggestions.map(question => `<li onclick="handleSuggestionClick('${question}')">${question}</li>`).join('')}
+          </ul>
+        </div>
+      `;
+      chatBox.innerHTML += suggestionsHTML;
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    // Função para lidar com o clique em uma sugestão
+    function handleSuggestionClick(question) {
+      const chatBox = document.getElementById("chat-box");
+      const userMessage = `<div class="message user">${question}</div>`;
+      chatBox.innerHTML += userMessage;
+
+      const botMessage = `<div class="message bot">${responses[question]}<br>Posso ajudar com mais alguma coisa?</div>`;
+      chatBox.innerHTML += botMessage;
+
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function sendMessage() {
+      const userInput = document.getElementById("user-input").value.trim();
+      const chatBox = document.getElementById("chat-box");
+
+      if (userInput) {
+        const userMessage = `<div class="message user">${userInput}</div>`;
+        chatBox.innerHTML += userMessage;
+
+        let botResponse = "";
+
+        if (userInput.toLowerCase() === "não" || userInput.toLowerCase() === "não, obrigado") {
+          botResponse = "Obrigado por utilizar o nosso chat. Até a próxima!";
+        } else if (userInput.toLowerCase() === "sim") {
+          botResponse = "Ótimo! Qual seria a sua dúvida?";
+        } else {
+          botResponse = responses[userInput] || "Desculpe, não entendi. Pode reformular?";
+        }
+
+        const botMessage = `<div class="message bot">${botResponse}</div>`;
+        chatBox.innerHTML += botMessage;
+
+        // Mostrar sugestões aleatórias ao final da resposta
+        if (userInput.toLowerCase() === "quais perguntas posso fazer?") {
+          showRandomSuggestions();
+        }
+
+        document.getElementById("user-input").value = "";
+        chatBox.scrollTop = chatBox.scrollHeight;
+      }
+    }
+
+    // Mostrar a mensagem inicial e as sugestões de perguntas assim que a página carregar
+    window.onload = function() {
+      showInitialMessage();
+      showRandomSuggestions();
+    };
+  </script>
+</body>
+</html>
